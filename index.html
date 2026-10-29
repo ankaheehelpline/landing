@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCH Hub</title>
+<style>
+  :root {
+    --bg: #FAF6F2;
+    --surface: #FFFFFF;
+    --primary: #5B4B7C;
+    --primary-dark: #443A5E;
+    --primary-soft: #EDE8F3;
+    --text: #2E2A33;
+    --text-muted: #7A7480;
+    --border: #E4DDD6;
+    --radius: 14px;
+    --shadow: 0 2px 10px rgba(46, 42, 51, 0.06);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header img.logo { height: 40px; width: auto; border-radius: 6px; }
+  header .title { font-size: 18px; font-weight: 700; color: var(--primary-dark); }
+  header .subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  main { max-width: 720px; margin: 0 auto; padding: 28px 16px 60px; }
+  .card-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 600px) { .card-grid { grid-template-columns: 1fr 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    min-height: 120px;
+  }
+  .card:active { transform: scale(0.98); }
+  .card.enabled:hover { box-shadow: 0 4px 16px rgba(46,42,51,0.10); }
+  .card.disabled { opacity: 0.55; cursor: default; pointer-events: none; }
+  .card-icon {
+    width: 40px; height: 40px; border-radius: 10px; background: var(--primary-soft);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+  .card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+  .card-tag {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--text-muted); background: var(--bg); border: 1px solid var(--border);
+    border-radius: 999px; padding: 3px 10px; width: fit-content; margin-top: auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img id="logo" class="logo" alt="" hidden>
+  <div>
+    <div class="title" id="hubName"></div>
+    <div class="subtitle" id="hubTagline"></div>
+  </div>
+</header>
+
+<main>
+  <div class="card-grid" id="grid"></div>
+</main>
+
+<script>
+'use strict';
+/* ====================================================================
+   HUB CONFIG — the only part to edit for another organisation.
+   logo   : file in this same repo, next to this page. Its full address is
+            worked out here and passed to every tool, so the tools need no
+            logo file or setting of their own.
+   tools  : one entry per card.
+     href   : address of the tool's published page. A card with an href is
+              live; a card with no href is greyed out as Coming soon.
+     url    : that organisation's web app address for the tool. Leave ''
+              for a page that has none (such as the Helpline Directory).
+   ==================================================================== */
+const HUB = {
+  name: 'TCH Hub',
+  tagline: 'Pick a tool to get started',
+  logo: 'logo.jpg',
+  tools: [
+    { title: 'Partnerships', icon: '🤝', status: 'live',
+      desc: 'Organisations we work with: who we spoke to, what was discussed and what to follow up on.',
+      href: 'https://theconnecthut.github.io/CRM/', url: 'https://script.google.com/macros/s/AKfycbwWbRl8tQWw6UJDnXax_VoD8FLPfchrvabBcvDP4F7_mFpY9EtDdlA0Q4_I0vqEtM-1/exec' },
+    { title: 'Training', icon: '🎓', status: 'live',
+      desc: 'Schedule trainings, track delivery and chase pending fees.',
+      href: 'https://theconnecthut.github.io/Trainings/', url: 'https://script.google.com/macros/s/AKfycbwF46flvD45F0HBWpT9UbpwdLL_KJlQXlvkFYJUrqJo6lHJIjR201xtYIkEuzhci0f8/exec' },
+    { title: 'Outreach', icon: '📣', status: 'soon',
+      desc: 'Campaigns and outreach activity.',
+      href: '', url: '' },
+    { title: 'Helpline Directory', icon: '📖', status: 'soon',
+      desc: 'Helplines and referral contacts in one place.',
+      href: 'https://theconnecthut.github.io/helplines/', url: '' }
+  ]
+};
+
+const logoUrl = (() => { try { return new URL(HUB.logo, location.href).href; } catch (e) { return ''; } })();
+function toolLink(t) {
+  const q = [];
+  if (t.url) q.push('url=' + encodeURIComponent(t.url));
+  if (logoUrl) q.push('logo=' + encodeURIComponent(logoUrl));
+  return t.href + (q.length ? (t.href.indexOf('?') >= 0 ? '&' : '?') + q.join('&') : '');
+}
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+document.title = HUB.name;
+document.getElementById('hubName').textContent = HUB.name;
+document.getElementById('hubTagline').textContent = HUB.tagline;
+const img = document.getElementById('logo');
+img.addEventListener('load', () => { img.hidden = false; });
+img.addEventListener('error', () => { img.hidden = true; });
+img.src = logoUrl;
+
+document.getElementById('grid').innerHTML = HUB.tools.map(t => {
+  const live = !!t.href;
+  const inner = '<div class="card-icon">' + esc(t.icon) + '</div><div class="card-title">' + esc(t.title) + '</div><div class="card-desc">' + esc(t.desc) + '</div>'
+    + (live ? '' : '<div class="card-tag">Coming soon</div>');
+  return live ? '<a class="card enabled" href="' + esc(toolLink(t)) + '">' + inner + '</a>' : '<div class="card disabled">' + inner + '</div>';
+}).join('');
+</script>
+</body>
+</html>
