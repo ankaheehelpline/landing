@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ankahee Hub</title>
+<title>TCH Hub</title>
 <style>
   :root {
     --bg: #FAF6F2;
@@ -97,6 +97,20 @@
               live; a card with no href is greyed out as Coming soon.
      url    : that organisation's web app address for the tool. Leave ''
               for a page that has none (such as the Helpline Directory).
+              Not used by Insights, which has several (see urls).
+     urls   : (Insights only) its web app addresses, one per view.
+              crm_pipeline is the Partnerships (CRM) web app, which gives
+              the Pipeline view, and training is the Training web app,
+              which gives the Training view. A view
+              shows only when its address is filled in, so each
+              organisation's hub decides which views Insights offers; a
+              blank address switches that view off. The person opening
+              Insights types each web app's Insights key once on the
+              device, unless that key is blank in the sheet.
+   v4: Insights card added (no groups yet).
+   v5: urls added for tools that read more than one web app (Insights).
+   v6: Insights keeps all its addresses in urls (crm_pipeline, training);
+       other cards keep a single url.
    ==================================================================== */
 const HUB = {
   name: 'Ankahee Hub',
@@ -112,16 +126,17 @@ const HUB = {
     { title: 'Partnerships', icon: '🤝',
       desc: 'Organisations we work with: who we spoke to, what was discussed and what to follow up on.',
       href: 'https://theconnecthut.github.io/CRM/', url: 'https://script.google.com/macros/s/AKfycbwbLHTmEiZX5NDWdS__cBZNmQ-heZbB-sbsD_OK-fRnT4XihPFThb-7RTUpY3xTLJsM/exec' },
-    { title: 'Insights', icon: '📊',
-      desc: 'Where each outreach campaign stands',
-      href: 'https://theconnecthut.github.io/insights/', url: 'https://script.google.com/macros/s/AKfycbwbLHTmEiZX5NDWdS__cBZNmQ-heZbB-sbsD_OK-fRnT4XihPFThb-7RTUpY3xTLJsM/exec' },
+  { title: 'Insights', icon: '📊',
+      desc: 'The numbers at a glance: CRM.',
+      href: 'https://theconnecthut.github.io/insights/', urls: { crm_pipeline: 'https://script.google.com/macros/s/AKfycbwbLHTmEiZX5NDWdS__cBZNmQ-heZbB-sbsD_OK-fRnT4XihPFThb-7RTUpY3xTLJsM/exec', training: '' } },
   ]
 };
-
+  
 const logoUrl = (() => { try { return new URL(HUB.logo, location.href).href; } catch (e) { return ''; } })();
 function toolLink(t) {
   const q = [];
   if (t.url) q.push('url=' + encodeURIComponent(t.url));
+  Object.keys(t.urls || {}).forEach(k => { if (t.urls[k]) q.push(encodeURIComponent(k) + '=' + encodeURIComponent(t.urls[k])); });
   if (logoUrl) q.push('logo=' + encodeURIComponent(logoUrl));
   return t.href + (q.length ? (t.href.indexOf('?') >= 0 ? '&' : '?') + q.join('&') : '');
 }
